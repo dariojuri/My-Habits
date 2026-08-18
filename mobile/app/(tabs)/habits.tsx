@@ -39,7 +39,7 @@ export default function HabitsScreen() {
             <EmptyState text="Nessuna abitudine. Creane una per iniziare." />
           </Card>
         ) : (
-          habits.map((habit, index) => (
+          habits.map((habit) => (
             <Card key={habit.id} style={styles.card}>
               <View style={[styles.colorBar, { backgroundColor: habit.color }]} />
               <Pressable
@@ -71,7 +71,6 @@ export default function HabitsScreen() {
                   onPress={() => confirmDelete(habit)}
                 />
               </View>
-              {index === -1 ? null : null}
             </Card>
           ))
         )}
