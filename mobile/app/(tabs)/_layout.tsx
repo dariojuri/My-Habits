@@ -1,0 +1,27 @@
+import { Tabs } from 'expo-router';
+import { Text } from 'react-native';
+import { useTheme } from '@/theme';
+
+function icon(glyph: string) {
+  return ({ color }: { color: string }) => (
+    <Text style={{ fontSize: 18, color }}>{glyph}</Text>
+  );
+}
+
+export default function TabsLayout() {
+  const { colors } = useTheme();
+  return (
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+      }}
+    >
+      <Tabs.Screen name="index" options={{ title: 'Oggi', tabBarIcon: icon('📖') }} />
+      <Tabs.Screen name="habits" options={{ title: 'Abitudini', tabBarIcon: icon('✅') }} />
+      <Tabs.Screen name="stats" options={{ title: 'Statistiche', tabBarIcon: icon('📈') }} />
+    </Tabs>
+  );
+}
