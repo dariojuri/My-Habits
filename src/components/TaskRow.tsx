@@ -1,32 +1,35 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import type { Task } from '@/db/types';
+import type { TaskOccurrence } from '@/db/types';
 import { radius, spacing, useTheme } from '@/theme';
 
 export function TaskRow({
   task,
   onComplete,
-  onDelete,
+  onPress,
 }: {
-  task: Task;
+  task: TaskOccurrence;
   onComplete: () => void;
-  onDelete: () => void;
+  onPress: () => void;
 }) {
   const { colors } = useTheme();
   return (
-    <View style={styles.row}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, { opacity: pressed ? 0.7 : 1 }]}
+    >
       <Pressable
         onPress={onComplete}
+        hitSlop={8}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: false }}
-        style={({ pressed }) => [styles.tap, { opacity: pressed ? 0.6 : 1 }]}
       >
-        <View style={[styles.checkbox, { borderColor: colors.textMuted }]} />
-        <Text style={[styles.text, { color: colors.text }]}>{task.text}</Text>
+        <View style={[styles.checkbox, { borderColor: colors.primary }]} />
       </Pressable>
-      <Pressable onPress={onDelete} hitSlop={8} accessibilityLabel="Rimuovi impegno">
-        <Text style={{ color: colors.textMuted, fontSize: 15 }}>✕</Text>
-      </Pressable>
-    </View>
+      <Text style={[styles.text, { color: colors.text }]} numberOfLines={2}>
+        {task.isRecurring ? '🔁 ' : ''}
+        {task.text}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -37,7 +40,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingVertical: spacing.sm,
   },
-  tap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   checkbox: { width: 20, height: 20, borderRadius: radius.sm, borderWidth: 2 },
   text: { flex: 1, fontSize: 15 },
 });

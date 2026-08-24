@@ -1,4 +1,4 @@
-import { useColorScheme, type ViewStyle } from 'react-native';
+import type { ViewStyle } from 'react-native';
 
 export const spacing = {
   xs: 4,
@@ -10,10 +10,10 @@ export const spacing = {
 } as const;
 
 export const radius = {
-  sm: 10,
-  md: 16,
-  lg: 24,
-  xl: 28,
+  sm: 12,
+  md: 18,
+  lg: 26,
+  xl: 30,
   pill: 999,
 } as const;
 
@@ -25,41 +25,28 @@ export type Palette = {
   textMuted: string;
   border: string;
   primary: string;
+  primaryGradientEnd: string;
   primaryText: string;
   danger: string;
   success: string;
-  shadow: string;
 };
 
-export const lightPalette: Palette = {
-  background: '#F0EFEC',
+/** Unica palette chiara e colorata: niente più dark mode automatica per ora. */
+export const palette: Palette = {
+  background: '#F1F3FC',
   surface: '#FFFFFF',
-  surfaceAlt: '#F5F4F1',
-  text: '#131316',
-  textMuted: '#84848A',
-  border: '#EAE9E5',
-  primary: '#131316',
+  surfaceAlt: '#F4F5FB',
+  text: '#1A1B29',
+  textMuted: '#8D90A8',
+  border: '#E8E9F5',
+  primary: '#5B6EF5',
+  primaryGradientEnd: '#9B6BF3',
   primaryText: '#FFFFFF',
-  danger: '#D64545',
-  success: '#131316',
-  shadow: '#000000',
+  danger: '#EF4444',
+  success: '#10B981',
 };
 
-export const darkPalette: Palette = {
-  background: '#0B0B0D',
-  surface: '#19191C',
-  surfaceAlt: '#222226',
-  text: '#F7F7F8',
-  textMuted: '#8E8E96',
-  border: '#2A2A2F',
-  primary: '#F7F7F8',
-  primaryText: '#0B0B0D',
-  danger: '#F0685C',
-  success: '#F7F7F8',
-  shadow: '#000000',
-};
-
-/** Colori vividi riservati alle abitudini: devono risaltare sulla base neutra grigio/nero. */
+/** Colori vividi riservati alle abitudini: devono risaltare anche su un'interfaccia già colorata. */
 export const habitColors = [
   '#EF4444',
   '#F59E0B',
@@ -72,26 +59,14 @@ export const habitColors = [
 ];
 
 /** Ombra morbida per dare profondità alle card, coerente in tutta l'app. */
-export function cardShadow(dark: boolean): ViewStyle {
-  return dark
-    ? {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.4,
-        shadowRadius: 14,
-        elevation: 4,
-      }
-    : {
-        shadowColor: '#171717',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.06,
-        shadowRadius: 16,
-        elevation: 3,
-      };
-}
+export const cardShadow: ViewStyle = {
+  shadowColor: '#3A3F87',
+  shadowOffset: { width: 0, height: 10 },
+  shadowOpacity: 0.08,
+  shadowRadius: 20,
+  elevation: 3,
+};
 
 export function useTheme(): { colors: Palette; dark: boolean } {
-  const scheme = useColorScheme();
-  const dark = scheme === 'dark';
-  return { colors: dark ? darkPalette : lightPalette, dark };
+  return { colors: palette, dark: false };
 }

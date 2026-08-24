@@ -7,6 +7,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { GradientFill } from './Gradient';
 import { cardShadow, radius, spacing, useTheme } from '@/theme';
 
 export function Card({
@@ -16,16 +17,9 @@ export function Card({
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
-  const { colors, dark } = useTheme();
+  const { colors } = useTheme();
   return (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: colors.surface },
-        cardShadow(dark),
-        style,
-      ]}
-    >
+    <View style={[styles.card, { backgroundColor: colors.surface }, cardShadow, style]}>
       {children}
     </View>
   );
@@ -48,8 +42,6 @@ export function Button({
   style?: StyleProp<ViewStyle>;
 }) {
   const { colors } = useTheme();
-  const background =
-    variant === 'primary' ? colors.primary : variant === 'danger' ? colors.danger : 'transparent';
   const textColor =
     variant === 'ghost' ? colors.text : variant === 'danger' ? '#FFFFFF' : colors.primaryText;
   return (
@@ -57,14 +49,14 @@ export function Button({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        {
-          backgroundColor: background,
-          borderColor: variant === 'ghost' ? colors.border : background,
-          opacity: pressed ? 0.7 : 1,
-        },
+        variant === 'ghost'
+          ? { backgroundColor: 'transparent', borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth }
+          : { backgroundColor: variant === 'danger' ? colors.danger : undefined },
+        { opacity: pressed ? 0.75 : 1 },
         style,
       ]}
     >
+      {variant === 'primary' ? <GradientFill radius={radius.lg} /> : null}
       <Text style={[styles.buttonLabel, { color: textColor }]}>{label}</Text>
     </Pressable>
   );
@@ -87,7 +79,8 @@ export function IconButton({
       hitSlop={8}
       style={({ pressed }) => [
         styles.iconButton,
-        { backgroundColor: colors.surfaceAlt, opacity: pressed ? 0.6 : 1 },
+        cardShadow,
+        { backgroundColor: colors.surface, opacity: pressed ? 0.6 : 1 },
       ]}
     >
       <Text style={{ color: colors.text, fontSize: 16 }}>{label}</Text>
@@ -114,9 +107,9 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
-    borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.lg,
     alignItems: 'center',
+    overflow: 'hidden',
   },
   buttonLabel: { fontSize: 15, fontWeight: '700' },
   iconButton: {

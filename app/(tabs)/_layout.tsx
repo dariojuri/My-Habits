@@ -19,9 +19,9 @@ export default function TabsLayout() {
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Oggi', tabBarIcon: icon('📖') }} />
+      <Tabs.Screen name="index" options={{ title: 'Oggi', tabBarIcon: icon('🗓️') }} />
       <Tabs.Screen name="habits" options={{ title: 'Abitudini', tabBarIcon: icon('✅') }} />
-      <Tabs.Screen name="stats" options={{ title: 'Statistiche', tabBarIcon: icon('📈') }} />
+      <Tabs.Screen name="andamento" options={{ title: 'Andamento', tabBarIcon: icon('📈') }} />
     </Tabs>
   );
 }

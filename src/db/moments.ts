@@ -13,6 +13,16 @@ export async function listMoments(date: DateKey): Promise<Moment[]> {
   return rows.map((r) => ({ id: r.id, date: r.date, text: r.text, createdAt: r.created_at }));
 }
 
+export async function listMomentsForRange(from: DateKey, to: DateKey): Promise<Moment[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<MomentRow>(
+    'SELECT * FROM moments WHERE date BETWEEN ? AND ? ORDER BY date DESC, id ASC',
+    from,
+    to,
+  );
+  return rows.map((r) => ({ id: r.id, date: r.date, text: r.text, createdAt: r.created_at }));
+}
+
 export async function createMoment(date: DateKey, text: string): Promise<number> {
   const db = await getDb();
   const result = await db.runAsync(

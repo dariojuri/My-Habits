@@ -6,15 +6,18 @@ export function HabitCheckRow({
   habit,
   checked,
   onToggle,
+  onLongPress,
 }: {
   habit: Habit;
   checked: boolean;
   onToggle: () => void;
+  onLongPress?: () => void;
 }) {
   const { colors } = useTheme();
   return (
     <Pressable
       onPress={onToggle}
+      onLongPress={onLongPress}
       accessibilityRole="checkbox"
       accessibilityState={{ checked }}
       style={({ pressed }) => [styles.row, { opacity: pressed ? 0.7 : 1 }]}

@@ -1,9 +1,9 @@
 import { create } from 'zustand';
+import * as dayRatingsDb from '@/db/dayRatings';
 import * as habitsDb from '@/db/habits';
 import * as logsDb from '@/db/logs';
-import * as momentsDb from '@/db/moments';
 import * as tasksDb from '@/db/tasks';
-import type { Habit, HabitInput, Moment, Task } from '@/db/types';
+import type { DayRating, Habit, HabitInput, TaskInput, TaskOccurrence } from '@/db/types';
 import { todayKey, weekdayOf, type DateKey } from '@/lib/date';
 
 type AppState = {
@@ -11,14 +11,15 @@ type AppState = {
   selectedDate: DateKey;
   habits: Habit[];
   completed: Set<number>;
-  moments: Moment[];
-  tasks: Task[];
+  tasks: TaskOccurrence[];
+  todayRating: DayRating | null;
 
   init: () => Promise<void>;
   setSelectedDate: (date: DateKey) => Promise<void>;
   refreshDay: () => Promise<void>;
   refreshHabits: () => Promise<void>;
   refreshTasks: () => Promise<void>;
+  refreshTodayRating: () => Promise<void>;
 
   toggleHabit: (habitId: number) => Promise<void>;
   addHabit: (input: HabitInput) => Promise<void>;
@@ -26,13 +27,13 @@ type AppState = {
   removeHabit: (id: number) => Promise<void>;
   moveHabit: (id: number, direction: -1 | 1) => Promise<void>;
 
-  addMoment: (text: string) => Promise<void>;
-  editMoment: (id: number, text: string) => Promise<void>;
-  removeMoment: (id: number) => Promise<void>;
-
-  addTask: (text: string) => Promise<void>;
-  completeTask: (id: number) => Promise<void>;
+  addTask: (input: TaskInput) => Promise<void>;
+  editTask: (id: number, input: TaskInput) => Promise<void>;
+  completeTask: (occurrence: TaskOccurrence) => Promise<void>;
   removeTask: (id: number) => Promise<void>;
+
+  setTodayMood: (mood: number | null) => Promise<void>;
+  setTodayScore: (score: number | null) => Promise<void>;
 };
 
 export function habitPlannedOn(habit: Habit, date: DateKey): boolean {
@@ -47,18 +48,18 @@ export const useAppStore = create<AppState>((set, get) => ({
   selectedDate: todayKey(),
   habits: [],
   completed: new Set<number>(),
-  moments: [],
   tasks: [],
+  todayRating: null,
 
   init: async () => {
     const habits = await habitsDb.listHabits();
     const date = get().selectedDate;
-    const [completed, moments, tasks] = await Promise.all([
+    const [completed, tasks, todayRating] = await Promise.all([
       logsDb.getCompletedForDate(date),
-      momentsDb.listMoments(date),
-      tasksDb.listPendingTasks(),
+      tasksDb.listTasksForDate(date),
+      dayRatingsDb.getDayRating(todayKey()),
     ]);
-    set({ habits, completed, moments, tasks, ready: true });
+    set({ habits, completed, tasks, todayRating, ready: true });
   },
 
   setSelectedDate: async (date) => {
@@ -68,11 +69,11 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   refreshDay: async () => {
     const date = get().selectedDate;
-    const [completed, moments] = await Promise.all([
+    const [completed, tasks] = await Promise.all([
       logsDb.getCompletedForDate(date),
-      momentsDb.listMoments(date),
+      tasksDb.listTasksForDate(date),
     ]);
-    set({ completed, moments });
+    set({ completed, tasks });
   },
 
   refreshHabits: async () => {
@@ -80,7 +81,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   refreshTasks: async () => {
-    set({ tasks: await tasksDb.listPendingTasks() });
+    set({ tasks: await tasksDb.listTasksForDate(get().selectedDate) });
+  },
+
+  refreshTodayRating: async () => {
+    set({ todayRating: await dayRatingsDb.getDayRating(todayKey()) });
   },
 
   toggleHabit: async (habitId) => {
@@ -119,37 +124,43 @@ export const useAppStore = create<AppState>((set, get) => ({
     await get().refreshHabits();
   },
 
-  addMoment: async (text) => {
-    if (!text.trim()) return;
-    await momentsDb.createMoment(get().selectedDate, text);
-    await get().refreshDay();
-  },
-
-  editMoment: async (id, text) => {
-    if (!text.trim()) return;
-    await momentsDb.updateMoment(id, text);
-    await get().refreshDay();
-  },
-
-  removeMoment: async (id) => {
-    await momentsDb.deleteMoment(id);
-    await get().refreshDay();
-  },
-
-  addTask: async (text) => {
-    if (!text.trim()) return;
-    await tasksDb.createTask(text);
+  addTask: async (input) => {
+    if (!input.text.trim()) return;
+    await tasksDb.createTask(input);
     await get().refreshTasks();
   },
 
-  completeTask: async (id) => {
+  editTask: async (id, input) => {
+    if (!input.text.trim()) return;
+    await tasksDb.updateTask(id, input);
+    await get().refreshTasks();
+  },
+
+  completeTask: async (occurrence) => {
     const previous = get().tasks;
-    set({ tasks: previous.filter((t) => t.id !== id) });
-    await tasksDb.setTaskCompleted(id, true);
+    set({ tasks: previous.filter((t) => t.taskId !== occurrence.taskId) });
+    await tasksDb.setOccurrenceCompleted(
+      occurrence.taskId,
+      get().selectedDate,
+      occurrence.isRecurring,
+      true,
+    );
   },
 
   removeTask: async (id) => {
     await tasksDb.deleteTask(id);
     await get().refreshTasks();
+  },
+
+  setTodayMood: async (mood) => {
+    const date = todayKey();
+    await dayRatingsDb.setMood(date, mood);
+    await get().refreshTodayRating();
+  },
+
+  setTodayScore: async (score) => {
+    const date = todayKey();
+    await dayRatingsDb.setScore(date, score);
+    await get().refreshTodayRating();
   },
 }));

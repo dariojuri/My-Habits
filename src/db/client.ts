@@ -48,14 +48,45 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       completed_at TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS day_ratings (
+      date TEXT PRIMARY KEY,
+      mood INTEGER,
+      score INTEGER,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS task_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+      date TEXT NOT NULL,
+      completed INTEGER NOT NULL DEFAULT 0,
+      UNIQUE (task_id, date)
+    );
   `);
 }
 
 /** Aggiunge colonne a tabelle già esistenti: idempotente, verifica lo schema prima di alterarlo. */
 async function migrateColumns(db: SQLite.SQLiteDatabase): Promise<void> {
-  const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(habits)');
-  if (!columns.some((c) => c.name === 'description')) {
+  const habitColumns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(habits)');
+  if (!habitColumns.some((c) => c.name === 'description')) {
     await db.execAsync("ALTER TABLE habits ADD COLUMN description TEXT NOT NULL DEFAULT ''");
+  }
+
+  const taskColumns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(tasks)');
+  if (!taskColumns.some((c) => c.name === 'time')) {
+    await db.execAsync('ALTER TABLE tasks ADD COLUMN time TEXT');
+  }
+  if (!taskColumns.some((c) => c.name === 'date')) {
+    await db.execAsync('ALTER TABLE tasks ADD COLUMN date TEXT');
+  }
+  if (!taskColumns.some((c) => c.name === 'recurrence_days')) {
+    await db.execAsync("ALTER TABLE tasks ADD COLUMN recurrence_days TEXT NOT NULL DEFAULT ''");
+    // Gli impegni creati prima dell'introduzione della data venivano mostrati ogni giorno:
+    // li ancoriamo a oggi una tantum, così restano visibili invece di sparire.
+    await db.execAsync(
+      "UPDATE tasks SET date = date('now') WHERE date IS NULL AND recurrence_days = ''",
+    );
   }
 }
 
