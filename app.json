@@ -3,7 +3,7 @@
     "name": "My Habits",
     "slug": "daily-journal",
     "owner": "dariojuri",
-    "version": "1.0.0",
+    "version": "0.2.0",
     "orientation": "portrait",
     "scheme": "dailyjournal",
     "userInterfaceStyle": "automatic",
@@ -11,6 +11,7 @@
     "icon": "./assets/icon.png",
     "android": {
       "package": "com.personal.dailyjournal",
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#0B0B0D",
         "foregroundImage": "./assets/adaptive-icon.png"
